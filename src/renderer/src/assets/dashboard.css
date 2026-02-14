@@ -1,0 +1,8 @@
+.Irate{
+    margin: 0.5rem;
+    margin-inline: 5rem;
+}
+.dashboardContainer {
+    height: 92.8vh;
+    background-color: #343a40; /* Dark background for the dashboard */
+}

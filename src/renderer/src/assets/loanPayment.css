@@ -1,0 +1,42 @@
+
+.loan-page-container { 
+    min-height: 92.8vh;
+    background-color: #f8f9fa;
+    width: 100%;
+    padding-left: 1rem; /* Add side padding so it doesn't touch edges */
+    padding-right: 1rem;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Customizing the Form Inputs to look sharper */
+.form-control:focus, .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-group-text {
+    border-right: none;
+    color: #6c757d;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+/* 2. FIX CRAMMING: Add breathing room inside the white card */
+.search-card-body {
+    padding: 2rem; /* More internal space */
+}
+
+/* Optional: Make inputs feel taller and less 'squashed' */
+.form-control, .form-select, .btn {
+    height: 45px; /* Standard comfortable height for desktop apps */
+}

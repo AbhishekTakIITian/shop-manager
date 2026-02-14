@@ -1,0 +1,41 @@
+.navbar{
+    position: relative;
+    background-color: #212529;
+    color: #fff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 0.5rem 1rem;
+}
+
+/* ensure brand/text/links are white */
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .navbar-text,
+.navbar .dropdown-toggle {
+    color: #fff !important;
+}
+
+/* hover/active states */
+.navbar .nav-link:hover,
+.navbar .dropdown-item:hover {
+    color: #ddd !important;
+}
+
+/* optional: make toggler visible on dark background */
+.navbar .navbar-toggler {
+    border-color: rgba(255,255,255,0.12);
+}
+.navbar .navbar-toggler-icon {
+    filter: invert(1) grayscale(1);
+}
+
+/* Make navbar items flex */
+.navbar .navbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    flex: 1;
+}

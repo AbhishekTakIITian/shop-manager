@@ -1,0 +1,58 @@
+.card-body {
+    width: 100%;
+    max-width: 400px;
+}
+.header{
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.login-label{
+    margin: 10px 0;
+}
+.login-container{
+    align-items: center;
+    justify-content: center;
+}
+.label{
+    margin: 10px 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+/* --- loanPayment.css --- */
+
+/* By default, hide the receipt on the screen */
+#printable-receipt {
+  display: none;
+}
+
+@media print {
+  /* Hide the normal web interface (navbar, sidebar, buttons, form, toasts) */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Hide the toast container specifically so it doesn't float over the paper */
+  #toast-container, .Toaster {
+    display: none !important;
+  }
+
+  /* Make the receipt visible and position it */
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+
+  #printable-receipt {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white;
+  }
+}
