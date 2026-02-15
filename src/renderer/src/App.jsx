@@ -5,7 +5,6 @@ import { nav as Nav } from './components/nav'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { loans as Loans } from './components/loans'
 import { LoanPayment } from './components/LoanPayment'
-import { LoanDetails } from './components/LoanDetails'
 import { Customers } from './components/Customers'
 import { Pushkraj } from './components/Pushkraj'
 
@@ -64,7 +63,6 @@ function App() {
                 ></LoanPayment>
               }
             />
-            <Route path="/loan-details" element={<LoanDetails></LoanDetails>} />
             <Route
               path="/customers"
               element={

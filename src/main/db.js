@@ -229,4 +229,8 @@ export function addLoan(loanData){
   }
 }
 
+export function getLoanDetails(payload){
+  return {success: true, data: []}
+}
+
 

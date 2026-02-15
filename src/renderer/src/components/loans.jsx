@@ -107,6 +107,93 @@ export const loans = ({ userId, customers, currentRate }) => {
     setImagePaths([null, null, null])
   }
 
+  const printReceipt = (loan, customer) => {
+    // Terms extracted from your file
+    const terms = [
+      "व्याज दर 1 महिन्याचे देणे आहे.",
+      "पत्ता बदलल्यास कळवावे.",
+      "एक वर्षानंतर किंवा त्यापूर्वी बाकी व तारण मालाची किंमत सारखी झाल्यास विक्री करून बाकी वसूल केले जाईल.",
+      "तारण माल चोरी / तोडफोड झाल्यास अथवा १ ग्रॅम सोने फॉर्मिंगचा नजर चुकीने ठेवल्यास त्याची जबाबदारी कर्जदारावर राहील.",
+      "एक वर्षानंतर कर्जदारास तारण मालाची विक्री झाल्यास तारण माल परत मिळणार नाही व रेकॉर्ड पाहण्यास मिळणार नाही.",
+      "दिलेले कर्ज बिगरशेती, दवाखाना, घरखर्च, शिक्षण इ. असल्याने या कर्जास कर्जमुक्ती कायदा लागू होणार नाही. या प्रमाणे पावती मिळाली.",
+      "सदर तारण माल पैसे जमा केल्यास 1 दिवसा नंतर मिळेल.",
+      "मालकाशिवाय व पावतीशिवाय वस्तु मिळणार नाही."
+    ]
+
+    // Construct the HTML String
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Loan Receipt</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+          body { font-family: 'Noto Sans Devanagari', sans-serif; padding: 20px; color: #000; }
+          .container { border: 2px solid #000; padding: 15px; width: 100%; box-sizing: border-box; }
+          .header { text-align: center; margin-bottom: 20px; }
+          .shree { font-weight: bold; margin-bottom: 5px; }
+          .ass-logo { font-weight: 900; font-size: 24px; border: 2px solid #000; display: inline-block; padding: 2px 10px; border-radius: 50%; margin-bottom: 5px; }
+          .shop-name { font-size: 26px; font-weight: bold; margin: 5px 0; }
+          .address { font-size: 14px; margin-bottom: 4px; }
+          .contact { font-size: 14px; font-weight: bold; }
+          .meta-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 10px; }
+          .row { display: flex; margin: 6px 0; align-items: baseline; }
+          .label { font-weight: bold; min-width: 180px; font-size: 14px; }
+          .value { border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 10px; font-weight: 500; font-size: 14px; }
+          .terms-box { margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; }
+          .terms-title { font-weight: bold; text-decoration: underline; margin-bottom: 5px; font-size: 14px; }
+          .terms-list { padding-left: 20px; font-size: 11px; line-height: 1.3; margin: 0; }
+          .footer { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
+          .sig-block { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="shree">|| श्री ||</div>
+            <div class="ass-logo">ASS</div>
+            <div class="shop-name">आमोल सुधाकर शहाणे</div>
+            <div class="address">पत्ता : ८७८, प.म.पेठ, शेटे मार्केट, सराफ बाजार, सोलापूर</div>
+            <div class="contact">मो. नं. : ९८८९५२५९९०, ७७७०२२४५४२०</div>
+          </div>
+
+          <div class="meta-row">
+            <div>अनुक्रमांक (Receipt No): ${loan.loanId || ''}</div>
+            <div>दिनांक (Date): ${loan.loanDate || ''}</div>
+          </div>
+
+          <div class="row"><div class="label">कर्जदाराचे नाव :</div><div class="value">${customer.name || ''}</div></div>
+          <div class="row"><div class="label">पत्ता :</div><div class="value">${customer.address || ''}</div></div>
+          <div class="row"><div class="label">कर्जाऊ रक्कम रुपये :</div><div class="value">${loan.loanAmount || ''} /-</div></div>
+          <div class="row"><div class="label">अक्षरी (In Words) :</div><div class="value">${loan.amountInWords || ''}</div></div>
+          <div class="row"><div class="label">कर्जाची तारीख :</div><div class="value">${loan.loanDate || ''}</div></div>
+          <div class="row"><div class="label">कर्जाची मुदत पूरी होण्याची तारीख :</div><div class="value">${loan.dueDate || ''}</div></div>
+
+          <div style="margin-top: 10px;">
+            <div class="row"><div class="label">तारण असल्यास त्याचे स्वरूप :</div><div class="value">${loan.jewelleryName || ''} - ${loan.jewelleryDetails || ''}</div></div>
+            <div class="row"><div class="label">तारण मालाचे अंदाजे वजन (ग्राम) :</div><div class="value">${loan.netWeight || ''} gm</div></div>
+            <div class="row"><div class="label">तारण मालाचे अंदाजे किंमत रुपये :</div><div class="value">${loan.valuation || ''} /-</div></div>
+          </div>
+
+          <div class="terms-box">
+            <div class="terms-title">कर्जास शर्ती :</div>
+            <ol class="terms-list">${terms.map(item => `<li>${item}</li>`).join('')}</ol>
+          </div>
+
+          <div class="footer">
+            <div class="sig-block">सावकाराची सही</div>
+            <div class="sig-block">कर्जदाराची सही किंवा नि. डावे हाताचा अंगठा</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+
+    // Send to Main Process
+    toast.loading('Generating Receipt...')
+    window.api.printReceipt(html)
+    setTimeout(() => toast.dismiss(), 1000)
+  }
   const handleSubmit = async (e) => {
     e.preventDefault()
     if(!loanData.loanId || loanData.loanId.trim() === ''){
@@ -149,6 +236,7 @@ export const loans = ({ userId, customers, currentRate }) => {
       if (response.success) {
         console.log('Loan saved with ID:', response.loanId, response)
         toast.success('Loan saved successfully')
+        printReceipt(loanData, customerDetails, response.id)
       } else {
         toast.error('Error saving loan')
         console.error(response.message)

@@ -200,6 +200,33 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.on('print-receipt', (event, htmlContent) => {
+  // Create a hidden worker window
+  let workerWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
+
+  // Load the HTML content
+  workerWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent))
+
+  workerWindow.webContents.on('did-finish-load', () => {
+    // Trigger print when content is ready
+    workerWindow.webContents.print({
+      silent: false, // False = Show the printer dialog
+      printBackground: true // Important for CSS styles
+    }, (success, errorType) => {
+      if (!success) console.log("Print failed:", errorType)
+      
+      // Close the window after printing (or if user cancels)
+      workerWindow.close()
+      workerWindow = null
+    })
+  })
+})
   createWindow()
 
   app.on('activate', function () {

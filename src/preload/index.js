@@ -12,7 +12,8 @@ const api = {
   deleteCustomer: (customer) => ipcRenderer.invoke('delete-customer', customer),
   addLoan: (loanData) => ipcRenderer.invoke('add-loan', loanData),
   saveImage: (imageDetails) => ipcRenderer.invoke('save-image', imageDetails),
-  getFilePath: (file) => webUtils.getPathForFile(file)
+  getFilePath: (file) => webUtils.getPathForFile(file),
+  printReceipt: (htmlContent) => ipcRenderer.send('print-receipt', htmlContent)
 }
 
 if (process.contextIsolated) {

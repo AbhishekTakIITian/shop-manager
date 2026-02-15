@@ -34,12 +34,7 @@ export const nav = () => {
               </li>
               <li className="nav-item">
                 <Link className="nav-link" to="/loans">
-                  Loans
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/loan-details">
-                  Loan Details
+                  New Loan
                 </Link>
               </li>
               <li className="nav-item">
