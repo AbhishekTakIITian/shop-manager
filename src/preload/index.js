@@ -13,7 +13,8 @@ const api = {
   addLoan: (loanData) => ipcRenderer.invoke('add-loan', loanData),
   saveImage: (imageDetails) => ipcRenderer.invoke('save-image', imageDetails),
   getFilePath: (file) => webUtils.getPathForFile(file),
-  printReceipt: (htmlContent) => ipcRenderer.send('print-receipt', htmlContent)
+  printReceipt: (htmlContent) => ipcRenderer.send('print-receipt', htmlContent),
+  getLoans: (payload) => ipcRenderer.invoke('get-loans', payload)
 }
 
 if (process.contextIsolated) {

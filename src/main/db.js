@@ -230,7 +230,35 @@ export function addLoan(loanData){
 }
 
 export function getLoanDetails(payload){
-  return {success: true, data: []}
+  const {searchBy, searchText, startDate, endDate} = payload;
+  // console.log('Fetching loan details with searchBy:', searchBy, 'searchText:', searchText, 'startDate:', startDate, 'endDate:', endDate)
+  if(searchBy === 'Customer Name'){
+    const stmt = db.prepare(`
+      SELECT loans.*, customers.name as customerName FROM loans 
+      JOIN customers ON loans.customerId = customers.id
+      WHERE customers.name LIKE ? AND date(loans.startDate) >= date(?) AND date(loans.startDate) <= date(?)
+    `);
+    try{
+      const values = stmt.all(`${searchText}`, startDate, endDate);
+      return {success: true, data: values};
+    }
+    catch(e){
+      return {success: false, message: `Error fetching loan details: ${e.message}`};
+    }
+  }else{
+    const stmt = db.prepare(`
+      SELECT loans.*, customers.name as customerName FROM loans 
+      JOIN customers ON loans.customerId = customers.id
+      WHERE customers.phone LIKE ? AND date(loans.startDate) >= date(?) AND date(loans.startDate) <= date(?)
+    `);
+    try{
+      const values = stmt.all(`${searchText}`, startDate, endDate);
+      return {success: true, data: values};
+    }
+    catch(e){
+      return {success: false, message: `Error fetching loan details: ${e.message}`};
+    }
+  }
 }
 
 

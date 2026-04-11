@@ -101,26 +101,24 @@ export const loans = ({ userId, customers, currentRate }) => {
   }
 
   const handleSave = () => {
-    setLoanData(initialLoanData) 
+    setLoanData(initialLoanData)
     setSelectedCustomerId('')
     setImages([null, null, null])
     setImagePaths([null, null, null])
   }
 
   const printReceipt = (loan, customer) => {
-    // Terms extracted from your file
     const terms = [
-      "व्याज दर 1 महिन्याचे देणे आहे.",
-      "पत्ता बदलल्यास कळवावे.",
-      "एक वर्षानंतर किंवा त्यापूर्वी बाकी व तारण मालाची किंमत सारखी झाल्यास विक्री करून बाकी वसूल केले जाईल.",
-      "तारण माल चोरी / तोडफोड झाल्यास अथवा १ ग्रॅम सोने फॉर्मिंगचा नजर चुकीने ठेवल्यास त्याची जबाबदारी कर्जदारावर राहील.",
-      "एक वर्षानंतर कर्जदारास तारण मालाची विक्री झाल्यास तारण माल परत मिळणार नाही व रेकॉर्ड पाहण्यास मिळणार नाही.",
-      "दिलेले कर्ज बिगरशेती, दवाखाना, घरखर्च, शिक्षण इ. असल्याने या कर्जास कर्जमुक्ती कायदा लागू होणार नाही. या प्रमाणे पावती मिळाली.",
-      "सदर तारण माल पैसे जमा केल्यास 1 दिवसा नंतर मिळेल.",
-      "मालकाशिवाय व पावतीशिवाय वस्तु मिळणार नाही."
+      'व्याज दर 1 महिन्याचे देणे आहे.',
+      'पत्ता बदलल्यास कळवावे.',
+      'एक वर्षानंतर किंवा त्यापूर्वी बाकी व तारण मालाची किंमत सारखी झाल्यास विक्री करून बाकी वसूल केले जाईल.',
+      'तारण माल चोरी / तोडफोड झाल्यास अथवा १ ग्रॅम सोने फॉर्मिंगचा नजर चुकीने ठेवल्यास त्याची जबाबदारी कर्जदारावर राहील.',
+      'एक वर्षानंतर कर्जदारास तारण मालाची विक्री झाल्यास तारण माल परत मिळणार नाही व रेकॉर्ड पाहण्यास मिळणार नाही.',
+      'दिलेले कर्ज बिगरशेती, दवाखाना, घरखर्च, शिक्षण इ. असल्याने या कर्जास कर्जमुक्ती कायदा लागू होणार नाही. या प्रमाणे पावती मिळाली.',
+      'सदर तारण माल पैसे जमा केल्यास 1 दिवसा नंतर मिळेल.',
+      'मालकाशिवाय व पावतीशिवाय वस्तु मिळणार नाही.'
     ]
 
-    // Construct the HTML String
     const html = `
       <!DOCTYPE html>
       <html>
@@ -128,23 +126,96 @@ export const loans = ({ userId, customers, currentRate }) => {
         <title>Loan Receipt</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap');
-          body { font-family: 'Noto Sans Devanagari', sans-serif; padding: 20px; color: #000; }
-          .container { border: 2px solid #000; padding: 15px; width: 100%; box-sizing: border-box; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .shree { font-weight: bold; margin-bottom: 5px; }
-          .ass-logo { font-weight: 900; font-size: 24px; border: 2px solid #000; display: inline-block; padding: 2px 10px; border-radius: 50%; margin-bottom: 5px; }
-          .shop-name { font-size: 26px; font-weight: bold; margin: 5px 0; }
-          .address { font-size: 14px; margin-bottom: 4px; }
-          .contact { font-size: 14px; font-weight: bold; }
-          .meta-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #000; padding-bottom: 10px; }
-          .row { display: flex; margin: 6px 0; align-items: baseline; }
-          .label { font-weight: bold; min-width: 180px; font-size: 14px; }
-          .value { border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 10px; font-weight: 500; font-size: 14px; }
-          .terms-box { margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; }
-          .terms-title { font-weight: bold; text-decoration: underline; margin-bottom: 5px; font-size: 14px; }
-          .terms-list { padding-left: 20px; font-size: 11px; line-height: 1.3; margin: 0; }
-          .footer { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
-          .sig-block { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 12px; }
+          
+          @page { 
+            size: A5; 
+            margin: 0; 
+          }
+          
+          body { 
+            font-family: 'Noto Sans Devanagari', sans-serif; 
+            padding: 2mm 5mm; /* Minimal side padding for max horizontal space */
+            color: #000; 
+            margin: 0;
+            width: 148mm;
+            height: 210mm;
+            box-sizing: border-box;
+            overflow: hidden;
+          }
+
+          .container { 
+            /* Border Removed */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box; 
+          }
+
+          .header { text-align: center; margin-bottom: 20px; width: 100%; }
+          .shree { font-weight: bold; font-size: 22px; margin-bottom: 2px; }
+          .ass-logo { font-weight: 900; font-size: 30px; border: 3px solid #000; display: inline-block; padding: 4px 14px; border-radius: 50%; margin-bottom: 8px; }
+          .shop-name { font-size: 34px; font-weight: bold; margin: 4px 0; }
+          .address { font-size: 19px; }
+          .contact { font-size: 19px; font-weight: bold; margin-bottom: 15px; }
+
+          .meta-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold; 
+            margin-bottom: 25px; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+            font-size: 20px; 
+          }
+
+          .content-body { 
+            flex-grow: 1; 
+          }
+
+          .row { 
+            display: flex; 
+            margin-bottom: 16.5px; /* Increased vertical spacing */
+            align-items: baseline; 
+            width: 100%;
+          }
+
+          .label { font-weight: bold; min-width: 240px; font-size: 20px; } /* Wider label for horizontal spread */
+          .value { 
+            border-bottom: 1px dotted #000; 
+            flex-grow: 1; 
+            padding-left: 10px; 
+            font-weight: 500; 
+            font-size: 20px; 
+          }
+
+          .terms-box { 
+            margin-top: auto; 
+            border-top: 2px solid #000; 
+            padding-top: 15px; 
+          }
+          .terms-title { font-weight: bold; text-decoration: underline; margin-bottom: 8px; font-size: 18px; }
+          .terms-list { 
+            padding-left: 25px; 
+            font-size: 15.5px; 
+            line-height: 1.5; 
+            margin: 0; 
+          }
+
+          .footer { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 40px; 
+            padding-bottom: 15px;
+            width: 100%;
+          }
+          .sig-block { 
+            text-align: center; 
+            width: 240px; 
+            border-top: 2px solid #000; 
+            padding-top: 8px; 
+            font-weight: bold; 
+            font-size: 18px; 
+          }
         </style>
       </head>
       <body>
@@ -158,45 +229,45 @@ export const loans = ({ userId, customers, currentRate }) => {
           </div>
 
           <div class="meta-row">
-            <div>अनुक्रमांक (Receipt No): ${loan.loanId || ''}</div>
-            <div>दिनांक (Date): ${loan.loanDate || ''}</div>
+            <div>अनुक्रमांक: ${loan.loanId || ''}</div>
+            <div>दिनांक: ${loan.loanDate || ''}</div>
           </div>
 
-          <div class="row"><div class="label">कर्जदाराचे नाव :</div><div class="value">${customer.name || ''}</div></div>
-          <div class="row"><div class="label">पत्ता :</div><div class="value">${customer.address || ''}</div></div>
-          <div class="row"><div class="label">कर्जाऊ रक्कम रुपये :</div><div class="value">${loan.loanAmount || ''} /-</div></div>
-          <div class="row"><div class="label">अक्षरी (In Words) :</div><div class="value">${loan.amountInWords || ''}</div></div>
-          <div class="row"><div class="label">कर्जाची तारीख :</div><div class="value">${loan.loanDate || ''}</div></div>
-          <div class="row"><div class="label">कर्जाची मुदत पूरी होण्याची तारीख :</div><div class="value">${loan.dueDate || ''}</div></div>
-
-          <div style="margin-top: 10px;">
-            <div class="row"><div class="label">तारण असल्यास त्याचे स्वरूप :</div><div class="value">${loan.jewelleryName || ''} - ${loan.jewelleryDetails || ''}</div></div>
-            <div class="row"><div class="label">तारण मालाचे अंदाजे वजन (ग्राम) :</div><div class="value">${loan.netWeight || ''} gm</div></div>
-            <div class="row"><div class="label">तारण मालाचे अंदाजे किंमत रुपये :</div><div class="value">${loan.valuation || ''} /-</div></div>
+          <div class="content-body">
+            <div class="row"><div class="label">कर्जदाराचे नाव :</div><div class="value">${customer.name || ''}</div></div>
+            <div class="row"><div class="label">पत्ता :</div><div class="value">${customer.address || ''}</div></div>
+            <div class="row"><div class="label">कर्जाऊ रक्कम :</div><div class="value">${loan.loanAmount || ''} /-</div></div>
+            <div class="row"><div class="label">अक्षरी (In Words) :</div><div class="value">${loan.amountInWords || ''}</div></div>
+            <div class="row"><div class="label">कर्जाची मुदत :</div><div class="value">${loan.dueDate || ''}</div></div>
+            
+            <div style="margin-top: 20px;">
+              <div class="row"><div class="label">तारण स्वरूप :</div><div class="value">${loan.jewelleryName || ''} - ${loan.jewelleryDetails || ''}</div></div>
+              <div class="row"><div class="label">अंदाजे वजन (ग्राम) :</div><div class="value">${loan.netWeight || ''} gm</div></div>
+              <div class="row"><div class="label">अंदाजे किंमत :</div><div class="value">${loan.valuation || ''} /-</div></div>
+            </div>
           </div>
 
           <div class="terms-box">
             <div class="terms-title">कर्जास शर्ती :</div>
-            <ol class="terms-list">${terms.map(item => `<li>${item}</li>`).join('')}</ol>
+            <ol class="terms-list">${terms.map((item) => `<li>${item}</li>`).join('')}</ol>
           </div>
 
           <div class="footer">
             <div class="sig-block">सावकाराची सही</div>
-            <div class="sig-block">कर्जदाराची सही किंवा नि. डावे हाताचा अंगठा</div>
+            <div class="sig-block">कर्जदाराची सही</div>
           </div>
         </div>
       </body>
       </html>
     `
 
-    // Send to Main Process
-    toast.loading('Generating Receipt...')
+    toast.loading('Generating Borderless A5 Receipt...')
     window.api.printReceipt(html)
     setTimeout(() => toast.dismiss(), 1000)
   }
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if(!loanData.loanId || loanData.loanId.trim() === ''){
+    if (!loanData.loanId || loanData.loanId.trim() === '') {
       toast.error('Receipt ID is required')
       return
     }
@@ -210,7 +281,7 @@ export const loans = ({ userId, customers, currentRate }) => {
           console.log(response)
           // `saveImage` in main returns a filename string. Some handlers may return
           // an object like { savedFileName } — handle both cases.
-          const savedName = (response && response.savedFileName) ? response.savedFileName : response
+          const savedName = response && response.savedFileName ? response.savedFileName : response
           newImagePaths.push(savedName)
         } else {
           newImagePaths.push(null)
@@ -224,7 +295,11 @@ export const loans = ({ userId, customers, currentRate }) => {
       toast.error(`Error saving images: ${e.message}`)
     }
 
-    console.log('Submitting:', { ...loanData, customerId: selectedCustomerId, imagePaths: newImagePaths })
+    console.log('Submitting:', {
+      ...loanData,
+      customerId: selectedCustomerId,
+      imagePaths: newImagePaths
+    })
     toast.loading('Saving Loan...')
     try {
       const response = await window.api.addLoan({
@@ -246,7 +321,7 @@ export const loans = ({ userId, customers, currentRate }) => {
       console.error(`Error saving images ${e}`)
       toast.error(`Error saving images: ${e.message}`)
     }
-    
+
     handleSave()
   }
 

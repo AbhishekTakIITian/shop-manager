@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { initDB, loginUser, getAllCustomers, createCustomer, updateCustomer, deleteCustomer, addLoan} from './db'
+import { initDB, loginUser, getAllCustomers, createCustomer, updateCustomer, deleteCustomer, addLoan, getLoanDetails} from './db'
 import path from 'path'
 import fs from 'fs'
 
@@ -117,6 +117,17 @@ app.whenReady().then(() => {
     return result
   })
 
+  // Handler to fetch loans (calls DB function `getLoanDetails`)
+  ipcMain.handle('get-loans', async (event, payload) => {
+    console.log('Received request to get loans with payload:', payload)
+    try {
+      const result = getLoanDetails(payload)
+      return result
+    } catch (err) {
+      console.error('Error in get-loans handler:', err)
+      return { success: false, message: err.message }
+    }
+  })
 
   ipcMain.handle('save-image', async (event, imageDetails) => {
     const { sourcePath, type } = imageDetails;
