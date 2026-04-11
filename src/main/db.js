@@ -40,14 +40,26 @@ export function initDB() {
       loanId TEXT NOT NULL,
       customerId INTEGER NOT NULL,
       amount REAL NOT NULL,
+      balance REAL NOT NULL DEFAULT 0,
       interestRate REAL NOT NULL,
       startDate TEXT NOT NULL,
       endDate TEXT NOT NULL,
       jewelleryName TEXT NOT NULL,
       description TEXT,
       jewelleryValue REAL,
+      netWeight REAL,
+      fineWeight REAL,
       status TEXT NOT NULL,
       FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      loanId INTEGER NOT NULL,
+      amount REAL NOT NULL,
+      paymentDate TEXT NOT NULL,
+      interestPaid REAL DEFAULT 0,
+      FOREIGN KEY (loanId) REFERENCES loans(id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS completedLoans (
@@ -104,6 +116,15 @@ export function initDB() {
   db.exec(createCustomersTable);
   db.exec(createLoansTable);
   db.exec(createPushkrajTable);
+
+  // Migration: Add balance column if not exists
+  try {
+    db.exec(`ALTER TABLE loans ADD COLUMN balance REAL DEFAULT 0`);
+  } catch (e) {
+    // Column might already exist
+  }
+  // Set balance = amount for loans where balance is 0
+  db.exec(`UPDATE loans SET balance = amount WHERE balance = 0`);
 
   console.log('Database initialized. Created tables if they did not exist.');
   // 4. Create a Default Admin User (so you can log in immediately)
@@ -185,9 +206,9 @@ export function deleteCustomer(customerId){
 
 export function addLoan(loanData){
   const stmt  = db.prepare(`INSERT INTO loans 
-    (loanId, customerId, amount, interestRate, startDate, endDate, jewelleryName, description, jewelleryValue, netWeight, fineWeight, status)
+    (loanId, customerId, amount, balance, interestRate, startDate, endDate, jewelleryName, description, jewelleryValue, netWeight, fineWeight, status)
     VALUES
-    (@loanId, @customerId, @loanAmount, @interestRate, @loanDate, @dueDate, @jewelleryName, @jewelleryDetails, @valuation, @netWeight, @fineWeight, 'active');
+    (@loanId, @customerId, @loanAmount, @loanAmount, @interestRate, @loanDate, @dueDate, @jewelleryName, @jewelleryDetails, @valuation, @netWeight, @fineWeight, 'active');
   `);  
   const stmt1 = db.prepare(`INSERT INTO loanImages (loanId, imagePath) VALUES (@loanId, @imagePath);`);
   const insertLoanWithImages = db.transaction((loanDetails, images) => {
@@ -258,6 +279,70 @@ export function getLoanDetails(payload){
     catch(e){
       return {success: false, message: `Error fetching loan details: ${e.message}`};
     }
+  }
+}
+
+export function updateLoan(loanData){
+  const stmt = db.prepare(`
+    UPDATE loans 
+    SET loanId = @loanId, amount = @loanAmount, interestRate = @interestRate, startDate = @loanDate, endDate = @dueDate, 
+        jewelleryName = @jewelleryName, description = @jewelleryDetails, jewelleryValue = @valuation, 
+        netWeight = @netWeight, fineWeight = @fineWeight
+    WHERE id = @id
+  `);
+  try{
+    const info = stmt.run(loanData);
+    return { success: true };
+  }catch (e){
+    return {success: false, message:`Error updating loan: ${e.message}`};
+  }
+}
+
+export function addPayment(paymentData){
+  const stmt = db.prepare(`
+    INSERT INTO payments (loanId, amount, paymentDate, interestPaid)
+    VALUES (@loanId, @amount, @paymentDate, @interestPaid)
+  `);
+  try{
+    const info = stmt.run(paymentData);
+    // Update loan balance
+    const updateStmt = db.prepare(`
+      UPDATE loans SET balance = balance - @amount WHERE id = @loanId
+    `);
+    updateStmt.run({loanId: paymentData.loanId, amount: paymentData.amount});
+    return { success: true, paymentId: info.lastInsertRowid };
+  }catch (e){
+    return {success: false, message:`Error adding payment: ${e.message}`};
+  }
+}
+
+export function getLoanPayments(loanId){
+  const stmt = db.prepare(`
+    SELECT * FROM payments WHERE loanId = ? ORDER BY paymentDate DESC
+  `);
+  try{
+    const values = stmt.all(loanId);
+    return {success: true, data: values};
+  }catch (e){
+    return {success: false, message: `Error fetching payments: ${e.message}`};
+  }
+}
+
+export function deleteLoan(loanId){
+  const stmt = db.prepare(`SELECT balance FROM loans WHERE id = ?`);
+  const loan = stmt.get(loanId);
+  if (!loan) {
+    return {success: false, message: 'Loan not found'};
+  }
+  if (loan.balance > 0) {
+    return {success: false, message: 'Cannot delete loan with outstanding balance'};
+  }
+  const deleteStmt = db.prepare(`DELETE FROM loans WHERE id = ?`);
+  try{
+    const info = deleteStmt.run(loanId);
+    return { success: true };
+  }catch (e){
+    return {success: false, message:`Error deleting loan: ${e.message}`};
   }
 }
 

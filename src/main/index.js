@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { initDB, loginUser, getAllCustomers, createCustomer, updateCustomer, deleteCustomer, addLoan, getLoanDetails} from './db'
+import { initDB, loginUser, getAllCustomers, createCustomer, updateCustomer, deleteCustomer, addLoan, getLoanDetails, updateLoan, addPayment, getLoanPayments, deleteLoan} from './db'
 import path from 'path'
 import fs from 'fs'
 
@@ -127,6 +127,30 @@ app.whenReady().then(() => {
       console.error('Error in get-loans handler:', err)
       return { success: false, message: err.message }
     }
+  })
+
+  ipcMain.handle('update-loan', async (event, loanData) => {
+    console.log('Updating loan:', loanData)
+    const result = updateLoan(loanData)
+    return result
+  })
+
+  ipcMain.handle('add-payment', async (event, paymentData) => {
+    console.log('Adding payment:', paymentData)
+    const result = addPayment(paymentData)
+    return result
+  })
+
+  ipcMain.handle('get-loan-payments', async (event, loanId) => {
+    console.log('Fetching payments for loan:', loanId)
+    const result = getLoanPayments(loanId)
+    return result
+  })
+
+  ipcMain.handle('delete-loan', async (event, loanId) => {
+    console.log('Deleting loan:', loanId)
+    const result = deleteLoan(loanId)
+    return result
   })
 
   ipcMain.handle('save-image', async (event, imageDetails) => {

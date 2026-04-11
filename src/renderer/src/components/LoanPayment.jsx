@@ -29,6 +29,13 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
   const [suggestions, setSuggestions] = useState([])
   const [searchedLoans, setSearchedLoans] = useState([]) // This will hold the final search results after form submission
 
+  // Edit and Payment states
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedLoan, setSelectedLoan] = useState(null)
+  const [editData, setEditData] = useState({})
+  const [paymentData, setPaymentData] = useState({ amount: '', paymentDate: new Date().toISOString().split('T')[0] })
+
   // 4. HANDLE INPUT CHANGES
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -108,13 +115,99 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
   }
 
   const handleEditLoan = (loan) => {
-    console.log('Edit loan clicked', loan)
-    toast('Edit action not implemented yet.', { icon: '✏️' })
+    setSelectedLoan(loan)
+    setEditData({
+      id: loan.id,
+      loanId: loan.loanId,
+      jewelleryName: loan.jewelleryName,
+      jewelleryDetails: loan.description,
+      netWeight: loan.netWeight,
+      fineWeight: loan.fineWeight,
+      valuation: loan.jewelleryValue,
+      loanAmount: loan.amount,
+      interestRate: loan.interestRate,
+      loanDate: loan.startDate,
+      dueDate: loan.endDate
+    })
+    setShowEditModal(true)
   }
 
   const handlePaymentLoan = (loan) => {
-    console.log('Payment loan clicked', loan)
-    toast('Payment action not implemented yet.', { icon: '💰' })
+    setSelectedLoan(loan)
+    setPaymentData({ amount: '', paymentDate: new Date().toISOString().split('T')[0] })
+    setShowPaymentModal(true)
+  }
+
+  const handleSaveEdit = async () => {
+    try {
+      const response = await window.api.updateLoan(editData)
+      if (response.success) {
+        toast.success('Loan updated successfully')
+        setShowEditModal(false)
+        // Refresh the search results
+        handleSubmit({ preventDefault: () => {} })
+      } else {
+        toast.error('Error updating loan: ' + response.message)
+      }
+    } catch (err) {
+      toast.error('Error updating loan: ' + err.message)
+    }
+  }
+
+  const handleSavePayment = async () => {
+    if (!paymentData.amount || paymentData.amount <= 0) {
+      toast.error('Please enter a valid payment amount')
+      return
+    }
+    try {
+      const response = await window.api.addPayment({
+        loanId: selectedLoan.id,
+        amount: parseFloat(paymentData.amount),
+        paymentDate: paymentData.paymentDate,
+        interestPaid: 0 // For now, assume no interest paid separately
+      })
+      if (response.success) {
+        toast.success('Payment added successfully')
+        setShowPaymentModal(false)
+        // Refresh the search results
+        handleSubmit({ preventDefault: () => {} })
+      } else {
+        toast.error('Error adding payment: ' + response.message)
+      }
+    } catch (err) {
+      toast.error('Error adding payment: ' + err.message)
+    }
+  }
+
+  const handleDeleteLoan = async (loan) => {
+    if (window.confirm(`Are you sure you want to delete loan ${loan.loanId}? This action cannot be undone.`)) {
+      try {
+        const response = await window.api.deleteLoan(loan.id)
+        if (response.success) {
+          toast.success('Loan deleted successfully')
+          // Refresh the search results
+          handleSubmit({ preventDefault: () => {} })
+        } else {
+          toast.error('Error deleting loan: ' + response.message)
+        }
+      } catch (err) {
+        toast.error('Error deleting loan: ' + err.message)
+      }
+    }
+  }
+
+  const getLoanStatusClass = (loan) => {
+    const today = new Date()
+    const dueDate = new Date(loan.endDate)
+    const balance = loan.balance || loan.amount
+
+    if (balance <= 0) {
+      return 'table-success' // Paid - green
+    } else if (today > dueDate) {
+      return 'table-danger' // Overdue - red
+    } else {
+      return 'table-warning' // Safe but pending - yellow/orange
+    }
   }
 
   return (
@@ -225,6 +318,13 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
               <h6 className="mb-0 fw-bold text-secondary">
                 Found {searchedLoans.length} loan{searchedLoans.length === 1 ? '' : 's'}
               </h6>
+              <div className="mt-2 d-flex indicator-container">
+                <small className="text-muted">
+                  <span className="badge bg-success me-2">Paid</span> • 
+                  <span className="badge bg-warning text-dark me-2">Safe</span> • 
+                  <span className="badge bg-danger me-2">Overdue</span> 
+                </small>
+              </div>
             </div>
             <div className="card p-0" style={{ overflowX: 'auto', width: '100%', paddingInline: '2px' }}>
               <table className="table table-sm table-hover table-bordered text-center mb-0 w-100" style={{ tableLayout: 'auto', minWidth: '900px' }}>
@@ -242,7 +342,7 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
                 </thead>
                 <tbody>
                   {searchedLoans.map((loan, index) => (
-                    <tr key={loan.loanId ?? index}>
+                    <tr key={loan.loanId ?? index} className={getLoanStatusClass(loan)}>
                       {Object.values(loan).map((value, idx) => (
                         <td key={idx} className="text-nowrap text-center">
                           {value?.toString?.() ?? ''}
@@ -251,17 +351,25 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
                       <td className="text-nowrap text-center">
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-primary me-2"
+                          className="btn btn-sm btn-outline-primary me-1"
                           onClick={() => handleEditLoan(loan)}
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-success"
+                          className="btn btn-sm btn-outline-success me-1"
                           onClick={() => handlePaymentLoan(loan)}
                         >
                           Payment
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => handleDeleteLoan(loan)}
+                          disabled={(loan.balance || loan.amount) > 0}
+                        >
+                          Delete
                         </button>
                       </td>
                     </tr>
@@ -276,6 +384,171 @@ export const LoanPayment = ({customers, userId, currentRate}) => {
       </div>
      
       
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Loan</h5>
+                <button type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <form>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Loan ID</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editData.loanId}
+                        onChange={(e) => setEditData({...editData, loanId: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Jewellery Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editData.jewelleryName}
+                        onChange={(e) => setEditData({...editData, jewelleryName: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Net Weight (gm)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editData.netWeight}
+                        onChange={(e) => setEditData({...editData, netWeight: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Fine Weight (gm)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editData.fineWeight}
+                        onChange={(e) => setEditData({...editData, fineWeight: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Valuation</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editData.valuation}
+                        onChange={(e) => setEditData({...editData, valuation: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Loan Amount</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editData.loanAmount}
+                        onChange={(e) => setEditData({...editData, loanAmount: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Interest Rate (%)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editData.interestRate}
+                        onChange={(e) => setEditData({...editData, interestRate: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Loan Date</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editData.loanDate}
+                        onChange={(e) => setEditData({...editData, loanDate: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Due Date</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editData.dueDate}
+                        onChange={(e) => setEditData({...editData, dueDate: e.target.value})}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Jewellery Details</label>
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        value={editData.jewelleryDetails}
+                        onChange={(e) => setEditData({...editData, jewelleryDetails: e.target.value})}
+                      ></textarea>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={handleSaveEdit}>Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Add Payment</h5>
+                <button type="button" className="btn-close" onClick={() => setShowPaymentModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Loan ID: {selectedLoan?.loanId}</label>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Customer: {selectedLoan?.customerName}</label>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Outstanding Balance: ₹{selectedLoan?.balance || selectedLoan?.amount}</label>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Payment Amount</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={paymentData.amount}
+                    onChange={(e) => setPaymentData({...paymentData, amount: e.target.value})}
+                    placeholder="Enter payment amount"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Payment Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={paymentData.paymentDate}
+                    onChange={(e) => setPaymentData({...paymentData, paymentDate: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowPaymentModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-success" onClick={handleSavePayment}>Add Payment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Backdrop */}
+      {(showEditModal || showPaymentModal) && <div className="modal-backdrop show"></div>}
+
       <Toaster></Toaster>
     </>
   )

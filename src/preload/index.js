@@ -14,7 +14,11 @@ const api = {
   saveImage: (imageDetails) => ipcRenderer.invoke('save-image', imageDetails),
   getFilePath: (file) => webUtils.getPathForFile(file),
   printReceipt: (htmlContent) => ipcRenderer.send('print-receipt', htmlContent),
-  getLoans: (payload) => ipcRenderer.invoke('get-loans', payload)
+  getLoans: (payload) => ipcRenderer.invoke('get-loans', payload),
+  updateLoan: (loanData) => ipcRenderer.invoke('update-loan', loanData),
+  addPayment: (paymentData) => ipcRenderer.invoke('add-payment', paymentData),
+  getLoanPayments: (loanId) => ipcRenderer.invoke('get-loan-payments', loanId),
+  deleteLoan: (loanId) => ipcRenderer.invoke('delete-loan', loanId)
 }
 
 if (process.contextIsolated) {
